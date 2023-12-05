@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Provider;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 public class BookController {
@@ -47,7 +48,17 @@ public class BookController {
 
     @PostMapping("/books")
     public ResponseEntity<ServiceResponse> add(@RequestBody BookDTO bookDTO){
-        boolean wasAdded = dao.add(bookDTO);
+        Book book = new Book();
+
+        UUID uuid = UUID.randomUUID();
+
+        book.setId(uuid.toString());
+        book.setName(bookDTO.getName());
+        book.setPrice(bookDTO.getPrice());
+        book.setCategory(bookDTO.getCategory());
+        book.setAuthor(bookDTO.getAuthor());
+
+        boolean wasAdded = dao.add(book);
 
         ServiceResponse<Book> serviceResponse = new ServiceResponse<>();
 
@@ -76,7 +87,14 @@ public class BookController {
             return new ResponseEntity<>(serviceResponse, HttpStatus.NOT_FOUND);
         }
 
-        boolean wasAdded = dao.update(id, bookDTO);
+        Book book = boxBook.get();
+
+        book.setName(bookDTO.getName());
+        book.setPrice(bookDTO.getPrice());
+        book.setCategory(bookDTO.getCategory());
+        book.setAuthor(bookDTO.getAuthor());
+
+        boolean wasAdded = dao.update(id, book);
 
         if (!wasAdded){
             serviceResponse.setCode(HttpStatus.BAD_REQUEST.value());

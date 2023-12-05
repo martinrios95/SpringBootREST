@@ -1,6 +1,5 @@
 package com.springboot.rest.dao;
 
-import com.springboot.rest.dto.BookDTO;
 import com.springboot.rest.mapper.BookMapper;
 import com.springboot.rest.models.Book;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public class BookDAO implements DAO<Book, String> {
@@ -25,9 +23,9 @@ public class BookDAO implements DAO<Book, String> {
     }
 
     @Override
-    public Optional<Book> find(String k) {
+    public Optional<Book> find(String id) {
         try {
-            Book book = connection.queryForObject("SELECT * FROM Books WHERE id = ?", mapper, k);
+            Book book = connection.queryForObject("SELECT * FROM Books WHERE id = ?", mapper, id);
 
             return Optional.ofNullable(book);
         } catch (EmptyResultDataAccessException e) {
@@ -40,18 +38,9 @@ public class BookDAO implements DAO<Book, String> {
         return connection.query("SELECT * FROM Books", mapper);
     }
 
-    public boolean add(BookDTO bookDTO){
+    @Override
+    public boolean add(Book book){
         try {
-            Book book = new Book();
-
-            UUID uuid = UUID.randomUUID();
-
-            book.setId(uuid.toString());
-            book.setName(bookDTO.getName());
-            book.setPrice(bookDTO.getPrice());
-            book.setCategory(bookDTO.getCategory());
-            book.setAuthor(bookDTO.getAuthor());
-
             int rows = connection.update("INSERT INTO Books VALUES (?, ?, ?, ?, ?)", book.getId(), book.getName(), book.getPrice(), book.getCategory(), book.getAuthor());
 
             return rows != 0;
@@ -60,9 +49,9 @@ public class BookDAO implements DAO<Book, String> {
         }
     }
 
-    public boolean update(String k, BookDTO bookDTO){
+    public boolean update(String id, Book book){
         try {
-            int rows = connection.update("UPDATE Books SET name = ?, price = ?, category = ?, author = ? WHERE id = ?", bookDTO.getName(), bookDTO.getPrice(), bookDTO.getCategory(), bookDTO.getAuthor(), k);
+            int rows = connection.update("UPDATE Books SET name = ?, price = ?, category = ?, author = ? WHERE id = ?", book.getName(), book.getPrice(), book.getCategory(), book.getAuthor(), id);
 
             return rows != 0;
         } catch (EmptyResultDataAccessException e) {
@@ -71,9 +60,9 @@ public class BookDAO implements DAO<Book, String> {
     }
 
     @Override
-    public boolean delete(String k) {
+    public boolean delete(String id) {
         try {
-            int rows = connection.update("DELETE FROM Books WHERE id = ?", k);
+            int rows = connection.update("DELETE FROM Books WHERE id = ?", id);
 
             return rows != 0;
         } catch (EmptyResultDataAccessException e) {
