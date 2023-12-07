@@ -1,0 +1,9 @@
+spring:
+  # Database configuration
+  datasource:
+    url: jdbc:sqlite:books.db
+    driver-class-name: org.sqlite.JDBC
+  # Misc
+  output:
+    ansi:
+      enabled: ALWAYS
