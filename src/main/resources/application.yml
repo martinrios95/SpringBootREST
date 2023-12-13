@@ -7,3 +7,7 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
+# Swagger configuration
+springdoc:
+  swagger-ui:
+    path: /swagger
