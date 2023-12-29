@@ -4,17 +4,19 @@ import com.springboot.rest.dto.BookDTO;
 import com.springboot.rest.response.ServiceResponse;
 import com.springboot.rest.dao.BookDAO;
 import com.springboot.rest.models.Book;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
-import java.security.Provider;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @RestController
+@RequestMapping("/books")
 public class BookController {
     private BookDAO dao;
     @Autowired
@@ -22,13 +24,13 @@ public class BookController {
         this.dao = dao;
     }
 
-    @GetMapping("/books")
+    @GetMapping()
     public ResponseEntity<List<Book>> getAll(){
         return ResponseEntity.ok(dao.findAll());
     }
 
-    @GetMapping("/books/{id}")
-    public ResponseEntity<ServiceResponse<Book>> get(@PathVariable("id") String id){
+    @GetMapping("/{id}")
+    public ResponseEntity<?> get(@PathVariable("id") String id){
         Optional<Book> boxBook = dao.find(id);
 
         ServiceResponse<Book> serviceResponse = new ServiceResponse<>();
@@ -43,10 +45,10 @@ public class BookController {
         serviceResponse.setCode(HttpStatus.OK.value());
         serviceResponse.setData(boxBook.get());
 
-        return new ResponseEntity<>(serviceResponse, HttpStatus.OK);
+        return ResponseEntity.ok(boxBook);
     }
 
-    @PostMapping("/books")
+    @PostMapping()
     public ResponseEntity<ServiceResponse> add(@RequestBody BookDTO bookDTO){
         Book book = new Book();
 
@@ -60,7 +62,7 @@ public class BookController {
 
         boolean wasAdded = dao.add(book);
 
-        ServiceResponse<Book> serviceResponse = new ServiceResponse<>();
+        ServiceResponse serviceResponse = new ServiceResponse<>();
 
         if (!wasAdded){
             serviceResponse.setCode(HttpStatus.BAD_REQUEST.value());
@@ -71,14 +73,14 @@ public class BookController {
 
         serviceResponse.setCode(HttpStatus.OK.value());
 
-        return new ResponseEntity<>(serviceResponse, HttpStatus.OK);
+        return ResponseEntity.ok(serviceResponse);
     }
 
-    @PutMapping("/books/{id}")
-    public ResponseEntity<ServiceResponse<Book>> update(@PathVariable("id") String id, @RequestBody BookDTO bookDTO){
+    @PutMapping("/{id}")
+    public ResponseEntity<ServiceResponse> update(@PathVariable("id") String id, @RequestBody BookDTO bookDTO){
         Optional<Book> boxBook = dao.find(id);
 
-        ServiceResponse<Book> serviceResponse = new ServiceResponse<>();
+        ServiceResponse serviceResponse = new ServiceResponse<>();
 
         if (boxBook.isEmpty()){
             serviceResponse.setCode(HttpStatus.NOT_FOUND.value());
@@ -105,14 +107,14 @@ public class BookController {
 
         serviceResponse.setCode(HttpStatus.OK.value());
 
-        return new ResponseEntity<>(serviceResponse, HttpStatus.OK);
+        return ResponseEntity.ok(serviceResponse);
     }
 
-    @DeleteMapping("/books/{id}")
-    public ResponseEntity<ServiceResponse<Book>> delete(@PathVariable String id){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ServiceResponse> delete(@PathVariable String id){
         Optional<Book> boxBook = dao.find(id);
 
-        ServiceResponse<Book> serviceResponse = new ServiceResponse<>();
+        ServiceResponse serviceResponse = new ServiceResponse<>();
 
         if (boxBook.isEmpty()){
             serviceResponse.setCode(HttpStatus.NOT_FOUND.value());
@@ -132,6 +134,6 @@ public class BookController {
 
         serviceResponse.setCode(HttpStatus.OK.value());
 
-        return new ResponseEntity<>(serviceResponse, HttpStatus.OK);
+        return ResponseEntity.ok(serviceResponse);
     }
 }

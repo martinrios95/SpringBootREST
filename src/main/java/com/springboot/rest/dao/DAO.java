@@ -1,7 +1,5 @@
 package com.springboot.rest.dao;
 
-import com.springboot.rest.dto.BookDTO;
-
 import java.util.List;
 import java.util.Optional;
 
