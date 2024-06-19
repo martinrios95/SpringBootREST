@@ -5,8 +5,12 @@ import com.springboot.rest.models.Book;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +40,11 @@ public class BookDAO implements DAO<Book, String> {
     @Override
     public List<Book> findAll() {
         return connection.query("SELECT * FROM Books", mapper);
+    }
+
+    public List<Book> findByNameContaining(String name) {
+        // SQLi-prone??
+        return connection.query("SELECT * FROM Books WHERE name LIKE '" + name + "%'", mapper);
     }
 
     @Override

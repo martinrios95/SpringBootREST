@@ -1,9 +1,11 @@
 package com.springboot.rest.controller;
 
 import com.springboot.rest.dto.BookDTO;
+import com.springboot.rest.response.ListServiceResponse;
 import com.springboot.rest.response.ServiceResponse;
 import com.springboot.rest.dao.BookDAO;
 import com.springboot.rest.models.Book;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,13 +18,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
+@Tag(name="Books")
 @RequestMapping("/books")
 public class BookController {
-    private BookDAO dao;
     @Autowired
-    public BookController(BookDAO dao){
-        this.dao = dao;
-    }
+    protected BookDAO dao;
 
     @GetMapping()
     public ResponseEntity<List<Book>> getAll(){
@@ -33,23 +33,29 @@ public class BookController {
     public ResponseEntity<?> get(@PathVariable("id") String id){
         Optional<Book> boxBook = dao.find(id);
 
-        ServiceResponse<Book> serviceResponse = new ServiceResponse<>();
-
         if (boxBook.isEmpty()){
-            serviceResponse.setCode(HttpStatus.NOT_FOUND.value());
-            serviceResponse.setMessage("Book not found!");
-
-            return new ResponseEntity<>(serviceResponse, HttpStatus.NOT_FOUND);
+            ServiceResponse<?> serviceResponse = new ServiceResponse<>(HttpStatus.NOT_FOUND.value(), "Book not found!");
+            return ResponseEntity.status(serviceResponse.getCode()).body(serviceResponse);
         }
 
-        serviceResponse.setCode(HttpStatus.OK.value());
-        serviceResponse.setData(boxBook.get());
+        return ResponseEntity.ok(boxBook.get());
+    }
 
-        return ResponseEntity.ok(boxBook);
+    @GetMapping("/name/{partialName}")
+    public ResponseEntity<?> getByName(@PathVariable("partialName") String partialName){
+        if (partialName.isBlank()){
+            ServiceResponse<?> serviceResponse = new ServiceResponse<>(HttpStatus.BAD_REQUEST.value(), "Name is required!");
+            return ResponseEntity.status(serviceResponse.getCode()).body(serviceResponse);
+        }
+
+        List<Book> books = dao.findByNameContaining(partialName.trim());
+        ListServiceResponse<Book> listServiceResponse = new ListServiceResponse<>(HttpStatus.OK.value(), books, null);
+
+        return ResponseEntity.ok(listServiceResponse);
     }
 
     @PostMapping()
-    public ResponseEntity<ServiceResponse> add(@RequestBody BookDTO bookDTO){
+    public ResponseEntity<?> add(@RequestBody BookDTO bookDTO){
         Book book = new Book();
 
         UUID uuid = UUID.randomUUID();
@@ -62,31 +68,21 @@ public class BookController {
 
         boolean wasAdded = dao.add(book);
 
-        ServiceResponse serviceResponse = new ServiceResponse<>();
-
         if (!wasAdded){
-            serviceResponse.setCode(HttpStatus.BAD_REQUEST.value());
-            serviceResponse.setMessage("Couldn't add book!");
-
-            return new ResponseEntity<>(serviceResponse, HttpStatus.BAD_REQUEST);
+            ServiceResponse<?> serviceResponse = new ServiceResponse<>(HttpStatus.BAD_REQUEST.value(), "Couldn't add book!");
+            return ResponseEntity.status(serviceResponse.getCode()).body(serviceResponse);
         }
 
-        serviceResponse.setCode(HttpStatus.OK.value());
-
-        return ResponseEntity.ok(serviceResponse);
+        return ResponseEntity.ok(ServiceResponse.ok());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ServiceResponse> update(@PathVariable("id") String id, @RequestBody BookDTO bookDTO){
+    public ResponseEntity<?> update(@PathVariable("id") String id, @RequestBody BookDTO bookDTO){
         Optional<Book> boxBook = dao.find(id);
 
-        ServiceResponse serviceResponse = new ServiceResponse<>();
-
         if (boxBook.isEmpty()){
-            serviceResponse.setCode(HttpStatus.NOT_FOUND.value());
-            serviceResponse.setMessage("Book not found!");
-
-            return new ResponseEntity<>(serviceResponse, HttpStatus.NOT_FOUND);
+            ServiceResponse<?> serviceResponse = new ServiceResponse<>(HttpStatus.NOT_FOUND.value(), "Book not found!");
+            return ResponseEntity.status(serviceResponse.getCode()).body(serviceResponse);
         }
 
         Book book = boxBook.get();
@@ -96,44 +92,32 @@ public class BookController {
         book.setCategory(bookDTO.getCategory());
         book.setAuthor(bookDTO.getAuthor());
 
-        boolean wasAdded = dao.update(id, book);
+        boolean wasUpdated = dao.update(id, book);
 
-        if (!wasAdded){
-            serviceResponse.setCode(HttpStatus.BAD_REQUEST.value());
-            serviceResponse.setMessage("Couldn't update book!");
-
-            return new ResponseEntity<>(serviceResponse, HttpStatus.BAD_REQUEST);
+        if (!wasUpdated){
+            ServiceResponse<?> serviceResponse = new ServiceResponse<>(HttpStatus.BAD_REQUEST.value(), "Couldn't update book!");
+            return ResponseEntity.status(serviceResponse.getCode()).body(serviceResponse);
         }
 
-        serviceResponse.setCode(HttpStatus.OK.value());
-
-        return ResponseEntity.ok(serviceResponse);
+        return ResponseEntity.ok(ServiceResponse.ok());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ServiceResponse> delete(@PathVariable String id){
+    public ResponseEntity<?> delete(@PathVariable String id){
         Optional<Book> boxBook = dao.find(id);
 
-        ServiceResponse serviceResponse = new ServiceResponse<>();
-
         if (boxBook.isEmpty()){
-            serviceResponse.setCode(HttpStatus.NOT_FOUND.value());
-            serviceResponse.setMessage("Book not found!");
-
-            return new ResponseEntity<>(serviceResponse, HttpStatus.NOT_FOUND);
+            ServiceResponse<?> serviceResponse = new ServiceResponse<>(HttpStatus.NOT_FOUND.value(), "Book not found!");
+            return ResponseEntity.status(serviceResponse.getCode()).body(serviceResponse);
         }
 
         boolean wasDeleted = dao.delete(id);
 
         if (!wasDeleted){
-            serviceResponse.setCode(HttpStatus.BAD_REQUEST.value());
-            serviceResponse.setMessage("Couldn't delete book!");
-
-            return new ResponseEntity<>(serviceResponse, HttpStatus.BAD_REQUEST);
+            ServiceResponse<?> serviceResponse = new ServiceResponse<>(HttpStatus.BAD_REQUEST.value(), "Couldn't delete book!");
+            return ResponseEntity.status(serviceResponse.getCode()).body(serviceResponse);
         }
 
-        serviceResponse.setCode(HttpStatus.OK.value());
-
-        return ResponseEntity.ok(serviceResponse);
+        return ResponseEntity.ok(ServiceResponse.ok());
     }
 }

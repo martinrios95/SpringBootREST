@@ -8,6 +8,10 @@ public class ServiceResponse<Type> {
     public ServiceResponse() {
     }
 
+    public ServiceResponse(int code, String message){
+        this(code, null, message);
+    }
+
     public ServiceResponse(int code, Type data, String message) {
         this.code = code;
         this.data = data;
@@ -36,5 +40,9 @@ public class ServiceResponse<Type> {
 
     public String getMessage() {
         return message;
+    }
+
+    public static ServiceResponse ok(){
+        return new ServiceResponse(200, null);
     }
 }
